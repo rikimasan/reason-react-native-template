@@ -1,0 +1,5 @@
+(dirs src)
+
+(melange.emit
+ (target App)
+ (libraries reasonReactNativeTemplate))

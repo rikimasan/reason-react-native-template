@@ -1,0 +1,6 @@
+(library
+ (libraries reason-react reason-react-native)
+ (modes melange)
+ (name reasonReactNativeTemplate)
+ (preprocess
+  (pps reason-react-ppx melange.ppx)))
