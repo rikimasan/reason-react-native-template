@@ -7,37 +7,46 @@
  */
 open ReactNative;
 
-type reactNativeNewAppScreenColors = {
-  .
-  "primary": string,
-  "white": string,
-  "lighter": string,
-  "light": string,
-  "black": string,
-  "dark": string,
+module Colors = {
+  type colors;
+
+  [@mel.module "react-native/Libraries/NewAppScreen"]
+  external colors: colors = "Colors";
+
+  [@mel.get] external primary: colors => string = "primary";
+  [@mel.get] external white: colors => string = "white";
+  [@mel.get] external lighter: colors => string = "lighter";
+  [@mel.get] external light: colors => string = "light";
+  [@mel.get] external dark: colors => string = "dark";
+  [@mel.get] external darker: colors => string = "darker";
+  [@mel.get] external black: colors => string = "black";
+  let primary = primary(colors);
+  let white = white(colors);
+  let lighter = lighter(colors);
+  let light = light(colors);
+  let dark = dark(colors);
+  let darker = darker(colors);
+  let black = black(colors);
 };
 
-[@mel.module "react-native/Libraries/NewAppScreen"]
-external colors: reactNativeNewAppScreenColors = "Colors";
-
-[@mel.module "react-native/Libraries/Core/Devtools/openURLInBrowser"]
-external openURLInBrowser: string => unit = "default";
+module DebugInstructions = {
+  [@react.component] [@mel.module "react-native/Libraries/NewAppScreen"]
+  external make: _ => React.element = "DebugInstructions";
+};
 
 module Header = {
   [@react.component] [@mel.module "react-native/Libraries/NewAppScreen"]
   external make: _ => React.element = "Header";
 };
-module ReloadInstructions = {
-  [@react.component] [@mel.module "react-native/Libraries/NewAppScreen"]
-  external make: _ => React.element = "ReloadInstructions";
-};
+
 module LearnMoreLinks = {
   [@react.component] [@mel.module "react-native/Libraries/NewAppScreen"]
   external make: _ => React.element = "LearnMoreLinks";
 };
-module DebugInstructions = {
+
+module ReloadInstructions = {
   [@react.component] [@mel.module "react-native/Libraries/NewAppScreen"]
-  external make: _ => React.element = "DebugInstructions";
+  external make: _ => React.element = "ReloadInstructions";
 };
 
 /*
@@ -47,126 +56,93 @@ module DebugInstructions = {
  (so before actual component definitions)
  More at https://reason-react-native.github.io/en/docs/apis/Style/
  */
-let styles =
-  Style.(
-    StyleSheet.create({
-      "scrollView": style(~backgroundColor=colors##lighter, ()),
-      "engine": style(~position=`absolute, ~right=0. |> dp, ()),
-      "body": style(~backgroundColor=colors##white, ()),
-      "sectionContainer":
-        style(~marginTop=32. |> dp, ~paddingHorizontal=24. |> dp, ()),
-      "sectionTitle":
-        style(~fontSize=24., ~fontWeight=`_600, ~color=colors##black, ()),
-      "sectionDescription":
-        style(
-          ~marginTop=8. |> dp,
+
+module Styles = {
+  let sectionContainer =
+    Style.style(
+      ~marginTop=Style.dp(32.),
+      ~paddingHorizontal=Style.dp(24.),
+      (),
+    );
+
+  let sectionTitle = isDarkMode =>
+    (isDarkMode ? Colors.white : Colors.black)
+    |> (color => Style.style(~fontSize=24., ~fontWeight=`_600, ~color, ()));
+  let sectionDescription = isDarkMode =>
+    (isDarkMode ? Colors.white : Colors.black)
+    |> (
+      color =>
+        Style.style(
+          ~color,
+          ~marginTop=Style.dp(8.),
           ~fontSize=18.,
           ~fontWeight=`_400,
-          ~color=colors##dark,
           (),
-        ),
-      "highlight": style(~fontWeight=`_700, ()),
-      "footer":
-        style(
-          ~color=colors##dark,
-          ~fontSize=12.,
-          ~fontWeight=`_600,
-          ~padding=4. |> dp,
-          ~paddingRight=12. |> dp,
-          ~textAlign=`right,
-          (),
-        ),
-    })
-  );
+        )
+    );
+  let highlight = Style.style(~fontWeight=`_700, ());
+};
+
+module Section = {
+  let isDarkMode =
+    Appearance.useColorScheme()
+    |> Js.Null.toOption
+    |> Option.fold(~none=`light, ~some=a => a)
+    |> (
+      fun
+      | `dark => true
+      | `light => false
+    );
+  [@react.component]
+  let make = (~title: string, ~children) =>
+    <View style=Styles.sectionContainer>
+      <Text style={isDarkMode |> Styles.sectionTitle}>
+        {title |> React.string}
+      </Text>
+      <Text style={isDarkMode |> Styles.sectionDescription}> children </Text>
+    </View>;
+};
 
 [@react.component]
-let app = () =>
-  <>
-    <StatusBar barStyle=`darkContent />
-    <SafeAreaView>
-      <ScrollView
-        contentInsetAdjustmentBehavior=`automatic style={styles##scrollView}>
-        {Global.hermesInternal |> Option.is_none
-           ? React.null
-           : <View style=styles##engine>
-               <Text style=styles##footer>
-                 {"Engine: Hermes" |> React.string}
-               </Text>
-             </View>}
-        <Header />
-        <View style={styles##body}>
-          <View style={styles##sectionContainer}>
-            <Text style={styles##sectionTitle}>
-              {"Step One" |> React.string}
-            </Text>
-            <Text style={styles##sectionDescription}>
-              {"Edit " |> React.string}
-              <Text style={styles##highlight}>
-                {"src/App.re" |> React.string}
-              </Text>
-              {" to change this screen and then come back to see your edits."
-               |> React.string}
-            </Text>
-          </View>
-          <View style={styles##sectionContainer}>
-            <Text style={styles##sectionTitle}>
-              {"See Your Changes" |> React.string}
-            </Text>
-            <Text style={styles##sectionDescription}>
-              <ReloadInstructions />
-            </Text>
-          </View>
-          <View style={styles##sectionContainer}>
-            <Text style={styles##sectionTitle}>
-              {"Debug" |> React.string}
-            </Text>
-            <Text style={styles##sectionDescription}>
-              <DebugInstructions />
-            </Text>
-          </View>
-          <View style={styles##sectionContainer}>
-            <Text style={styles##sectionTitle}>
-              {"Learn More" |> React.string}
-            </Text>
-            <Text style={styles##sectionDescription}>
-              {"Read the docs to discover what to do next:" |> React.string}
-            </Text>
-          </View>
-          <View style={styles##sectionContainer}>
-            <Text style={styles##sectionDescription}>
-              <Text style={styles##highlight}>
-                {"Reason React Native" |> React.string}
-              </Text>
-            </Text>
-            <TouchableOpacity
-              onPress={_ =>
-                openURLInBrowser(
-                  "https://reason-react-native.github.io/en/docs/",
-                )
-              }>
-              <Text
-                style=Style.(
-                  style(
-                    ~marginTop=8. |> dp,
-                    ~fontSize=18.,
-                    ~fontWeight=`_400,
-                    ~color=colors##primary,
-                    (),
-                  )
-                )>
-                {"https://reason-react-native.github.io/" |> React.string}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles##sectionContainer}>
-            <Text style={styles##sectionDescription}>
-              <Text style={styles##highlight}>
-                {"React Native" |> React.string}
-              </Text>
-            </Text>
-          </View>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  </>;
+let app = () => {
+  let isDarkMode =
+    Appearance.useColorScheme()
+    |> Js.Null.toOption
+    |> Option.fold(~none=`light, ~some=a => a)
+    |> (
+      fun
+      | `dark => true
+      | `light => false
+    );
+  let backgroundColor = isDarkMode ? Colors.darker : Colors.lighter;
+  let backgroundStyle = Style.style(~backgroundColor, ());
+
+  <SafeAreaView style=backgroundStyle>
+    <StatusBar
+      barStyle={isDarkMode ? `lightContent : `darkContent}
+      backgroundColor
+    />
+    <ScrollView
+      contentInsetAdjustmentBehavior=`automatic style=backgroundStyle>
+      <Header />
+      <View
+        style={Style.style(
+          ~backgroundColor=isDarkMode ? Colors.black : Colors.white,
+          (),
+        )}>
+        <Section title="Step One">
+          {"Edit " |> React.string}
+          <Text style=Styles.highlight> {"App.tsx" |> React.string} </Text>
+          {" to change this screen and then come back to see your edits."
+           |> React.string}
+        </Section>
+        <Section title="See Your Changes"> <ReloadInstructions /> </Section>
+        <Section title="Debug"> <DebugInstructions /> </Section>
+        <Section title="Learn More">
+          {"Read the docs to discover what to do next:" |> React.string}
+        </Section>
+        <LearnMoreLinks />
+      </View>
+    </ScrollView>
+  </SafeAreaView>;
+};
