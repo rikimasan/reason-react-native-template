@@ -2,7 +2,7 @@
  * Sample React Native App
  * https://github.com/facebook/react-native
  *
- * Converted from https://github.com/facebook/react-native/blob/724fe11472cb874ce89657b2c3e7842feff04205/template/App.js
+ * Converted from https://github.com/react-native-community/template/blob/0.75.0-rc.5/template/App.tsx
  * With a few tweaks
  */
 open ReactNative;
@@ -49,14 +49,6 @@ module ReloadInstructions = {
   external make: _ => React.element = "ReloadInstructions";
 };
 
-/*
- Here is StyleSheet that is using Style module to define styles for your components
- The main different with JavaScript components you may encounter in React Native
- is the fact that they **must** be defined before being referenced
- (so before actual component definitions)
- More at https://reason-react-native.github.io/en/docs/apis/Style/
- */
-
 module Styles = {
   let sectionContainer =
     Style.style(
@@ -84,30 +76,29 @@ module Styles = {
 };
 
 module Section = {
-  let isDarkMode =
-    Appearance.useColorScheme()
-    |> Js.Null.toOption
-    |> Option.fold(~none=`light, ~some=a => a)
-    |> (
-      fun
-      | `dark => true
-      | `light => false
-    );
   [@react.component]
-  let make = (~title: string, ~children) =>
+  let make = (~title: string, ~children) => {
+    let isDarkMode =
+      Hooks.useColorScheme()
+      |> Option.fold(~none=`light, ~some=a => a)
+      |> (
+        fun
+        | `dark => true
+        | `light => false
+      );
     <View style=Styles.sectionContainer>
       <Text style={isDarkMode |> Styles.sectionTitle}>
         {title |> React.string}
       </Text>
       <Text style={isDarkMode |> Styles.sectionDescription}> children </Text>
     </View>;
+  };
 };
 
 [@react.component]
 let app = () => {
   let isDarkMode =
-    Appearance.useColorScheme()
-    |> Js.Null.toOption
+    Hooks.useColorScheme()
     |> Option.fold(~none=`light, ~some=a => a)
     |> (
       fun
